@@ -1,17 +1,17 @@
-import { useState, useCallback } from 'react';
-import { getTemplates, addTemplate, updateTemplate, deleteTemplate } from '../services/templateService';
+import { useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { addTemplate, updateTemplate, deleteTemplate } from '../store/slices/templateSlice';
 import TemplateCard from '../components/TemplateCard';
 import TemplateForm from '../components/TemplateForm';
 import SearchBar from '../components/SearchBar';
 
 export default function Templates() {
-  const [templates, setTemplates] = useState(() => getTemplates());
+  const dispatch = useDispatch();
+  const templates = useSelector((state) => state.templates.items);
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
-
-  const refreshTemplates = useCallback(() => setTemplates(getTemplates()), []);
 
   const filtered = templates.filter(
     (t) =>
@@ -19,10 +19,10 @@ export default function Templates() {
       t.subject.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleAdd = (data) => { addTemplate(data); refreshTemplates(); setShowForm(false); };
+  const handleAdd = (data) => { dispatch(addTemplate(data)); setShowForm(false); };
   const handleEdit = (template) => { setEditingTemplate(template); setShowForm(true); };
-  const handleUpdate = (data) => { updateTemplate(editingTemplate.id, data); refreshTemplates(); setShowForm(false); setEditingTemplate(null); };
-  const handleDeleteConfirm = (id) => { deleteTemplate(id); refreshTemplates(); setDeleteConfirm(null); };
+  const handleUpdate = (data) => { dispatch(updateTemplate({ id: editingTemplate.id, updates: data })); setShowForm(false); setEditingTemplate(null); };
+  const handleDeleteConfirm = (id) => { dispatch(deleteTemplate(id)); setDeleteConfirm(null); };
   const handleCloseForm = () => { setShowForm(false); setEditingTemplate(null); };
 
   return (

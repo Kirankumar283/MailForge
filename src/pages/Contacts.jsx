@@ -1,28 +1,22 @@
 import { useState, useEffect } from 'react';
-import { fetchContacts } from '../services/contactService';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchContacts } from '../store/slices/contactSlice';
 import SearchBar from '../components/SearchBar';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
 
 export default function Contacts() {
-  const [contacts, setContacts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const dispatch = useDispatch();
+  const { items: contacts, loading, error } = useSelector((state) => state.contacts);
   const [search, setSearch] = useState('');
 
-  const loadContacts = async () => {
-    setLoading(true);
-    setError(null);
-    const { data, error: err } = await fetchContacts();
-    if (err) {
-      setError(err);
-    } else {
-      setContacts(data || []);
+  useEffect(() => {
+    if (contacts.length === 0) {
+      dispatch(fetchContacts());
     }
-    setLoading(false);
-  };
+  }, [dispatch, contacts.length]);
 
-  useEffect(() => { loadContacts(); }, []);
+  const handleRetry = () => dispatch(fetchContacts());
 
   const filtered = contacts.filter(
     (c) =>
@@ -31,7 +25,7 @@ export default function Contacts() {
   );
 
   if (loading) return <LoadingSpinner message="Loading contacts..." />;
-  if (error) return <ErrorMessage message={error} onRetry={loadContacts} />;
+  if (error) return <ErrorMessage message={error} onRetry={handleRetry} />;
 
   return (
     <div className="space-y-6">

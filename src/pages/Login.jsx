@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useSelector, useDispatch } from 'react-redux';
+import { login, clearError } from '../store/slices/authSlice';
 import { validateLoginForm, hasErrors } from '../utils/validators';
 
 export default function Login() {
-  const { isAuthenticated, login, error: authError } = useAuth();
+  const { isAuthenticated, error: authError } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -21,6 +23,10 @@ export default function Login() {
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: null }));
     }
+    // Clear Redux auth error when user types
+    if (authError) {
+      dispatch(clearError());
+    }
   };
 
   const handleSubmit = (e) => {
@@ -30,10 +36,10 @@ export default function Login() {
       setErrors(validationErrors);
       return;
     }
-    const success = login(formData.email, formData.password);
-    if (success) {
-      navigate('/dashboard', { replace: true });
-    }
+    dispatch(login({ email: formData.email, password: formData.password }));
+    // After dispatch, check the store for success
+    // Since Redux updates are synchronous for reducers, we can check isAuthenticated
+    // But since this component re-renders on state change, the Navigate above will handle redirect
   };
 
   return (

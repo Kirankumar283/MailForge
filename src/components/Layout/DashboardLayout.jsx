@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import { useAuth } from '../../hooks/useAuth';
+import { logout } from '../../store/slices/authSlice';
 
 export default function DashboardLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { user, logout } = useAuth();
+  const user = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    logout();
+    dispatch(logout());
     navigate('/login', { replace: true });
   };
 

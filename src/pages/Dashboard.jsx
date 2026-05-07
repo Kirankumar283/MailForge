@@ -1,21 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { getTemplates } from '../services/templateService';
-import { fetchContacts } from '../services/contactService';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchContacts } from '../store/slices/contactSlice';
 
 export default function Dashboard() {
-  const [templateCount, setTemplateCount] = useState(0);
-  const [contactCount, setContactCount] = useState(0);
-  const [loadingContacts, setLoadingContacts] = useState(true);
+  const dispatch = useDispatch();
+  const templateCount = useSelector((state) => state.templates.items.length);
+  const { items: contacts, loading: loadingContacts } = useSelector((state) => state.contacts);
 
   useEffect(() => {
-    setTemplateCount(getTemplates().length);
-
-    fetchContacts().then(({ data }) => {
-      setContactCount(data?.length || 0);
-      setLoadingContacts(false);
-    });
-  }, []);
+    dispatch(fetchContacts());
+  }, [dispatch]);
 
   const stats = [
     {
@@ -32,7 +27,7 @@ export default function Dashboard() {
     },
     {
       label: 'Total Contacts',
-      value: loadingContacts ? '…' : contactCount,
+      value: loadingContacts ? '…' : contacts.length,
       icon: (
         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -135,7 +130,7 @@ export default function Dashboard() {
             </div>
             <div>
               <p className="text-sm font-medium text-slate-200">Data Persistence</p>
-              <p className="text-xs text-slate-400 mt-0.5">Templates are saved in localStorage and persist across sessions.</p>
+              <p className="text-xs text-slate-400 mt-0.5">Templates are saved via Redux with localStorage and persist across sessions.</p>
             </div>
           </div>
         </div>
